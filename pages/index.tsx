@@ -1,7 +1,6 @@
-export default function Home() {
-  return (
-    <div className="text-xl h-screen flex justify-center items-center">
-      Hello World
-    </div>
-  );
+import type { ReactElement } from "react";
+import { LandingPage } from "../components/LandingPage";
+
+export default function Home(): ReactElement {
+  return <LandingPage />;
 }
