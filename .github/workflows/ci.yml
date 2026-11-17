@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# The site is static. Prisma generate and next build must succeed
+# with DATABASE_URL and SHADOW_DATABASE_URL unset.
+jobs:
+  build:
+    name: Lint and build
+    # ubuntu-latest is 26.04 (OpenSSL 3.5). Prisma 4.3.1 has no
+    # debian-openssl-3.5.x engine, so generate fails there. 24.04 is
+    # OpenSSL 3.0, which this Prisma release supports.
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
