@@ -1,10 +1,12 @@
-import type { MouseEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 
 /**
- * TODO: point this at the real beta invite URL before anyone is sent here.
- * The href is the string "TODO" on purpose. Do not invent an email or a URL.
+ * Verified Grok Bot invite URL. Leave this empty until one exists.
+ * An empty string keeps both buttons on this page’s How to start section.
  */
-export const INVITE_HREF = "TODO";
+export const ALBUM_BOT_INVITE_URL = "";
+
+const GET_STARTED_HREF = "#get-started";
 
 type InviteVariant = "solid" | "large";
 
@@ -12,8 +14,12 @@ type InviteLinkProps = {
   variant?: InviteVariant;
 };
 
-function preventInviteNavigation(event: MouseEvent<HTMLAnchorElement>): void {
-  event.preventDefault();
+function inviteHref(): string {
+  const trimmed = ALBUM_BOT_INVITE_URL.trim();
+  if (trimmed.length > 0) {
+    return trimmed;
+  }
+  return GET_STARTED_HREF;
 }
 
 function classNameFor(variant: InviteVariant): string {
@@ -29,14 +35,8 @@ export function InviteLink(props: InviteLinkProps): ReactElement {
   const variant = props.variant ?? "solid";
 
   return (
-    <a
-      href={INVITE_HREF}
-      data-todo="invite-href"
-      title="Invite link isn’t up yet"
-      className={classNameFor(variant)}
-      onClick={preventInviteNavigation}
-    >
-      Request an invite
+    <a href={inviteHref()} className={classNameFor(variant)}>
+      Get started
     </a>
   );
 }

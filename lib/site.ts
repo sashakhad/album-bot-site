@@ -4,7 +4,7 @@ export const SITE_TITLE =
   "Album Bot — make an album, with your taste in the loop";
 
 export const SITE_DESCRIPTION =
-  "An album used to take hundreds of hours and thousands of dollars. Album Bot walks you through a full, cohesive body of work for a small monthly cost. You listen, you vote, and your taste stays in the loop.";
+  "An album used to take hundreds of hours and thousands of dollars. Album Bot walks you through a full, cohesive body of work for a small monthly cost. You listen and vote in a player on your own computer.";
 
 export const SAMPLE_ALBUM_NAME = "Porch Light";
 
@@ -15,7 +15,11 @@ export const SUNO_PRICING_URL = "https://suno.com/pricing";
 
 export const X_PRICING_URL = "https://x.ai/pricing";
 
-export const PRICING_CHECKED_ON = "November 17, 2026";
+export const GROK_BOT_URL = "https://x.ai/bot";
+
+export const PRICING_CHECKED_ON = "November 18, 2026";
+
+export const DEFAULT_SITE_URL = "https://album-bot-site.vercel.app";
 
 export const sunoFreeMonthly = 0;
 
@@ -111,10 +115,35 @@ export function dollars(amount: number): string {
   return `$${grouped}`;
 }
 
-export function absoluteUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!base) {
-    return path;
+function normalizedSiteUrl(value: string): string | undefined {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return undefined;
+    }
+    const path = url.pathname.replace(/\/+$/, "");
+    return `${url.origin}${path}`;
+  } catch {
+    return undefined;
   }
-  return new URL(path, base).href;
+}
+
+export function siteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (typeof configured !== "string") {
+    return DEFAULT_SITE_URL;
+  }
+  const trimmed = configured.trim();
+  if (trimmed.length === 0) {
+    return DEFAULT_SITE_URL;
+  }
+  const normalized = normalizedSiteUrl(trimmed);
+  if (!normalized) {
+    return DEFAULT_SITE_URL;
+  }
+  return normalized;
+}
+
+export function absoluteUrl(path: string): string {
+  return new URL(path, siteUrl()).href;
 }
