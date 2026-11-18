@@ -2,6 +2,7 @@ import Head from "next/head";
 import type { ReactElement } from "react";
 import {
   absoluteUrl,
+  siteUrl,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_TITLE,
@@ -18,33 +19,24 @@ type WebSiteSchema = {
   "@type": "WebSite";
   name: string;
   description: string;
-  url?: string;
+  url: string;
 };
 
 function websiteSchema(): WebSiteSchema {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (siteUrl) {
-    return {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: SITE_NAME,
-      description: SITE_DESCRIPTION,
-      url: siteUrl,
-    };
-  }
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
     description: SITE_DESCRIPTION,
+    url: siteUrl(),
   };
 }
 
 export function Seo(props: SeoProps): ReactElement {
   const title = props.title ?? SITE_TITLE;
   const description = props.description ?? SITE_DESCRIPTION;
+  const url = siteUrl();
   const image = absoluteUrl("/og.png");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const includeJsonLd = props.jsonLd ?? false;
 
   return (
@@ -56,6 +48,7 @@ export function Seo(props: SeoProps): ReactElement {
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
+      <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
@@ -67,8 +60,7 @@ export function Seo(props: SeoProps): ReactElement {
       <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       <link rel="alternate icon" href="/favicon.ico" />
       <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      {siteUrl ? <meta property="og:url" content={siteUrl} /> : null}
-      {siteUrl ? <link rel="canonical" href={siteUrl} /> : null}
+      <link rel="canonical" href={url} />
       {includeJsonLd ? (
         <script
           type="application/ld+json"

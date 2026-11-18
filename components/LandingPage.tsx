@@ -6,11 +6,12 @@ import { SiteShell } from "./SiteShell";
 import {
   costRows,
   createCredits,
+  dollars,
   freeTakesPerDay,
+  GROK_BOT_URL,
   PRICING_CHECKED_ON,
   SAMPLE_ALBUM_NAME,
   SAMPLE_ALBUM_URL,
-  dollars,
   sunoFreeCreditsPerDay,
   sunoFreeMonthly,
   sunoPlatinumMonthly,
@@ -54,10 +55,6 @@ function LightMark(): ReactElement {
       className="inline-block h-2.5 w-2.5 rounded-full bg-amber shadow-[0_0_14px_rgba(232,161,90,0.9)]"
     />
   );
-}
-
-function Command(props: { children: string }): ReactElement {
-  return <code className="font-mono text-amber">{props.children}</code>;
 }
 
 type SectionProps = {
@@ -115,7 +112,8 @@ function Hero(): ReactElement {
       <p className="mt-6 max-w-2xl text-lg leading-relaxed text-sand sm:text-xl">
         An album has historically taken hundreds of hours, and thousands to tens
         of thousands of dollars. Album Bot walks you through a full, cohesive
-        body of work for a small monthly cost, with your taste in the loop.
+        body of work for a small monthly cost. The songs open in a player on
+        your computer, and you vote. Your taste stays in the loop.
       </p>
       <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <InviteLink variant="large" />
@@ -130,24 +128,41 @@ function Hero(): ReactElement {
 function HowItWorks(): ReactElement {
   return (
     <Section title="How it works">
-      <p>The bot opens with a choice.</p>
-      <div className="flex flex-col gap-3">
-        <p className="border-l-2 border-amber pl-4 italic text-cream">
-          “Want to start building an album?”
-        </p>
-        <p className="border-l-2 border-amber/40 pl-4 italic text-cream">
-          “Want to get set up first?”
-        </p>
+      <p>
+        You describe the album. Album Bot writes the songs, makes the takes, and
+        opens a player on your computer. You listen and vote there. It stays on
+        your computer.
+      </p>
+      <p>You pick how to start.</p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <article className="h-full rounded-2xl border border-line bg-panel px-5 py-6">
+          <h3 className="font-serif text-2xl text-cream">Album Bot Light</h3>
+          <p className="mt-3 text-base leading-relaxed text-sand">
+            Try your album on this computer. A few tracks you can play and
+            score. You can use Suno Free.
+          </p>
+        </article>
+        <article className="h-full rounded-2xl border border-line bg-panel px-5 py-6">
+          <h3 className="font-serif text-2xl text-cream">Full Setup</h3>
+          <p className="mt-3 text-base leading-relaxed text-sand">
+            Up to five Cursor models write the same song, on paid Suno. You
+            compare the takes by ear. Allow about 5–10 minutes if you need to
+            sign in.
+          </p>
+        </article>
       </div>
       <p>
-        <Command>/start</Command> runs a short questionnaire.{" "}
-        <Command>/surprise</Command> lets it pick.
+        That comparison is a blind listen. Each writer starts from the same
+        idea, and one more take combines the ideas they actually used. You score
+        the takes with the names hidden, then see the prompt, the writer, and
+        your score. Five writers, plus that combined take, is twelve takes. A
+        shorter lineup is fine.
       </p>
       <p>
-        It writes song prompts, makes Suno takes, and you listen and vote on
-        your own album site. Then it finishes the finals.
+        Either way, the player on your computer comes first. Nothing is hosted
+        for anyone. When you ask to share, Album Bot publishes that same player
+        on your own Vercel account.
       </p>
-      <p>Setup gets you to Suno’s payment page. You only enter a card.</p>
     </Section>
   );
 }
@@ -160,21 +175,21 @@ function Paths(): ReactElement {
           <h3 className="font-serif text-2xl text-cream">Free</h3>
           <p className="mt-3 text-base leading-relaxed text-sand">
             Suno Free is {dollars(sunoFreeMonthly)}, with{" "}
-            {sunoFreeCreditsPerDay} credits a day. Songs are the shorter v6-mini
-            kind, about 45–55 seconds, and they’re non-commercial. The bot makes
-            them on suno.com, in its own browser.
+            {sunoFreeCreditsPerDay} Suno credits a day. Songs are the shorter
+            kind, about 45–55 seconds, and they’re non-commercial. Album Bot
+            Light can start here.
           </p>
         </article>
         <article className="h-full rounded-2xl border border-line bg-panel px-5 py-6">
           <h3 className="font-serif text-2xl text-cream">Paid</h3>
           <p className="mt-3 text-base leading-relaxed text-sand">
-            Suno Pro or Premier, through the Suno connector. Full-length songs,
-            and commercial use.
+            Suno Pro or Premier. Full-length songs, and commercial use. Full
+            Setup uses a paid plan.
           </p>
         </article>
       </div>
       <p className="text-base text-muted">
-        A create spends {createCredits} credits and makes {takesPerCreate}{" "}
+        One batch spends {createCredits} Suno credits and makes {takesPerCreate}{" "}
         takes. A free day covers {freeTakesPerDay} short takes.
       </p>
     </Section>
@@ -209,8 +224,8 @@ function Costs(): ReactElement {
   return (
     <Section id="cost" title="What it costs">
       <p className="text-base text-muted">
-        Monthly prices, before tax. GitHub and Vercel stay on the free tiers, so
-        these are the whole bill.
+        Monthly prices, before tax. Album Bot does not add a fee. You pay X for
+        Grok Bot, and Suno for the songs.
       </p>
       <CostList />
       <p className="text-base text-muted">
@@ -245,29 +260,17 @@ function Accounts(): ReactElement {
     <Section title="What you need">
       <ul className="flex flex-col gap-2">
         <li>Grok Bot, which needs X Premium or higher.</li>
-        <li>A Suno account.</li>
-        <li>GitHub, on the free tier.</li>
-        <li>Vercel, on the free tier.</li>
+        <li>A Suno account. Free is enough to start.</li>
+        <li>Cursor, only if you choose Full Setup.</li>
       </ul>
-    </Section>
-  );
-}
-
-function PublicByDefault(): ReactElement {
-  return (
-    <Section title="Public by default">
-      <p>
-        Album sites are public. There’s no password and no privacy setup. If you
-        want yours private, change the repo or the Vercel settings.
-      </p>
     </Section>
   );
 }
 
 function Sample(): ReactElement {
   return (
-    <Section id="sample" title="A sample">
-      <p>Porch Light is a public album. It plays without signing in.</p>
+    <Section id="sample" title="An example">
+      <p>{SAMPLE_ALBUM_NAME} is an example album.</p>
       <ExternalLink
         href={SAMPLE_ALBUM_URL}
         className="block rounded-2xl border border-line bg-panel px-5 py-6 transition hover:border-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber"
@@ -278,39 +281,35 @@ function Sample(): ReactElement {
         <p className="mt-2 font-serif text-3xl text-cream">
           {SAMPLE_ALBUM_NAME}
         </p>
-        <p className="mt-2 text-base text-sand">Hit play. No sign-in.</p>
+        <p className="mt-2 text-base text-sand">An example you can play.</p>
       </ExternalLink>
     </Section>
   );
 }
 
-function Join(): ReactElement {
+function GetStarted(): ReactElement {
   return (
-    <Section id="join" title="Join the beta">
+    <Section id="get-started" title="How to start">
       <ol className="flex flex-col gap-4">
         <li className="flex gap-4">
           <span className="font-serif text-amber">1</span>
-          <span>Create the bot.</span>
+          <span>
+            Open <ExternalLink href={GROK_BOT_URL}>Grok Bot</ExternalLink>.
+          </span>
         </li>
         <li className="flex gap-4">
           <span className="font-serif text-amber">2</span>
-          <span>Paste or link the Album Bot instructions.</span>
+          <span>Open the team Album Bot.</span>
         </li>
         <li className="flex gap-4">
           <span className="font-serif text-amber">3</span>
-          <span>The bot handles setup.</span>
-        </li>
-        <li className="flex gap-4">
-          <span className="font-serif text-amber">4</span>
-          <span>
-            Type <Command>/start</Command>.
-          </span>
+          <span>Say hello.</span>
         </li>
       </ol>
-      <div className="mt-2 flex flex-col items-start gap-3">
-        <InviteLink variant="large" />
-        <p className="text-sm text-muted">The invite link isn’t up yet.</p>
-      </div>
+      <p>
+        It asks what kind of album you want, then whether you want Album Bot
+        Light or Full Setup.
+      </p>
     </Section>
   );
 }
@@ -350,9 +349,8 @@ export function LandingPage(): ReactElement {
             <Paths />
             <Costs />
             <Accounts />
-            <PublicByDefault />
             <Sample />
-            <Join />
+            <GetStarted />
           </div>
         </main>
         <SiteFooter />
