@@ -136,18 +136,18 @@ function HowItWorks(): ReactElement {
       <p>You pick how to start.</p>
       <div className="grid gap-4 sm:grid-cols-2">
         <article className="h-full rounded-2xl border border-line bg-panel px-5 py-6">
-          <h3 className="font-serif text-2xl text-cream">Album Bot Light</h3>
+          <h3 className="font-serif text-2xl text-cream">Album Bot Lite</h3>
           <p className="mt-3 text-base leading-relaxed text-sand">
-            Try your album on this computer. A few tracks you can play and
-            score. You can use Suno Free.
+            Play and score a few tracks on this computer. I’ll use Suno’s
+            lighter model when available. Works with Suno Free.
           </p>
         </article>
         <article className="h-full rounded-2xl border border-line bg-panel px-5 py-6">
           <h3 className="font-serif text-2xl text-cream">Full Setup</h3>
           <p className="mt-3 text-base leading-relaxed text-sand">
-            Up to five Cursor models write the same song, on paid Suno. You
-            compare the takes by ear. Allow about 5–10 minutes if you need to
-            sign in.
+            Up to five different AI models each write a prompt for the same
+            song. Compare the takes blind and hear a version that combines their
+            ideas.
           </p>
         </article>
       </div>
@@ -177,7 +177,7 @@ function Paths(): ReactElement {
             Suno Free is {dollars(sunoFreeMonthly)}, with{" "}
             {sunoFreeCreditsPerDay} Suno credits a day. Songs are the shorter
             kind, about 45–55 seconds, and they’re non-commercial. Album Bot
-            Light can start here.
+            Lite can start here.
           </p>
         </article>
         <article className="h-full rounded-2xl border border-line bg-panel px-5 py-6">
@@ -308,7 +308,7 @@ function GetStarted(): ReactElement {
       </ol>
       <p>
         It asks what kind of album you want, then whether you want Album Bot
-        Light or Full Setup.
+        Lite or Full Setup.
       </p>
     </Section>
   );
