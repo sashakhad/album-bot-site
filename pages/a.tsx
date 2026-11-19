@@ -12,6 +12,10 @@ import {
   scoreFor,
   scoreStorageKey,
 } from "../lib/link-album.mjs";
+import {
+  knownMediaDuration,
+  remoteMp4Duration,
+} from "../lib/media-duration.mjs";
 
 type LinkTake = {
   id: string;
@@ -56,6 +60,8 @@ function unbind(media: HTMLMediaElement) {
   clearCanPlay(media);
   media.ontimeupdate = null;
   media.ondurationchange = null;
+  media.onloadedmetadata = null;
+  media.onprogress = null;
   media.onplaying = null;
   media.onwaiting = null;
   media.onpause = null;
@@ -81,6 +87,7 @@ function prefetchUrl(url: string) {
   const media = elementFor(url);
   media.preload = "auto";
   if (media.src !== url) media.src = url;
+  armDuration(url);
 }
 
 function pauseOthers(except: HTMLMediaElement) {
@@ -105,6 +112,62 @@ function releaseUrl(url: string) {
   media.removeAttribute("src");
   media.load();
   players.delete(url);
+}
+
+const durationCache = new Map<string, number>();
+const durationLoads = new Map<string, Promise<number | null>>();
+const durationWait = new Set<string>();
+
+function loadDuration(url: string): Promise<number | null> {
+  const cached = durationCache.get(url);
+  if (cached !== undefined) return Promise.resolve(cached);
+  const existing = durationLoads.get(url);
+  if (existing !== undefined) return existing;
+  const pending = Promise.resolve(remoteMp4Duration(url))
+    .then((seconds: unknown): number | null => {
+      durationLoads.delete(url);
+      if (
+        typeof seconds !== "number" ||
+        !Number.isFinite(seconds) ||
+        seconds <= 0
+      ) {
+        return null;
+      }
+      durationCache.set(url, seconds);
+      return seconds;
+    })
+    .catch((): number | null => {
+      durationLoads.delete(url);
+      return null;
+    });
+  durationLoads.set(url, pending);
+  return pending;
+}
+
+// The movie header sits at the end of a Suno MP4. Wait until the element
+// can already play so this 128 KB read does not compete with the first bytes.
+function armDuration(url: string) {
+  if (durationCache.has(url) || durationLoads.has(url)) return;
+  const media = players.get(url);
+  function readLater() {
+    void loadDuration(url);
+  }
+  function onReady() {
+    if (media === undefined) return;
+    media.removeEventListener("canplay", onReady);
+    durationWait.delete(url);
+    setTimeout(readLater, 0);
+  }
+  if (
+    media !== undefined &&
+    media.readyState < HTMLMediaElement.HAVE_FUTURE_DATA
+  ) {
+    if (durationWait.has(url)) return;
+    durationWait.add(url);
+    media.addEventListener("canplay", onReady);
+    return;
+  }
+  setTimeout(readLater, 0);
 }
 
 async function probeRendition(url: string): Promise<PlayableSample | null> {
@@ -312,6 +375,39 @@ export default function AlbumLinkPage() {
     void refineTake(next.take, () => currentRef.current?.takeId ?? null);
   }
 
+  function publishKnown(media: HTMLMediaElement, token: number) {
+    if (playToken.current !== token || mediaRef.current !== media) return;
+    const known = knownMediaDuration(media) as number | null;
+    if (typeof known !== "number" || !Number.isFinite(known) || known <= 0)
+      return;
+    const src = media.currentSrc.length > 0 ? media.currentSrc : media.src;
+    const header = durationCache.get(src);
+    const official = Number.isFinite(media.duration) && media.duration > 0;
+    if (header !== undefined && !official && known < header - 0.5) return;
+    setDuration(known);
+  }
+
+  function noteHeader(url: string, token: number, seconds: number) {
+    if (playToken.current !== token) return;
+    const media = mediaRef.current;
+    if (media === null) return;
+    const src = media.currentSrc.length > 0 ? media.currentSrc : media.src;
+    if (src !== url) return;
+    setDuration(seconds);
+  }
+
+  function readDuration(url: string, token: number) {
+    const cached = durationCache.get(url);
+    if (cached !== undefined) {
+      noteHeader(url, token, cached);
+      return;
+    }
+    void loadDuration(url).then((seconds) => {
+      if (seconds === null) return;
+      noteHeader(url, token, seconds);
+    });
+  }
+
   function bind(
     media: HTMLMediaElement,
     take: LinkTake,
@@ -321,16 +417,23 @@ export default function AlbumLinkPage() {
     media.ontimeupdate = () => {
       if (mediaRef.current !== media) return;
       setTime(media.currentTime);
+      publishKnown(media, token);
     };
     media.ondurationchange = () => {
-      if (mediaRef.current !== media) return;
-      setDuration(Number.isFinite(media.duration) ? media.duration : 0);
+      publishKnown(media, token);
+    };
+    media.onloadedmetadata = () => {
+      publishKnown(media, token);
+    };
+    media.onprogress = () => {
+      publishKnown(media, token);
     };
     media.onplaying = () => {
       if (playToken.current !== token) return;
       setPlaying(true);
       setWaiting(false);
       setFailure("");
+      publishKnown(media, token);
       const playingNow = currentRef.current;
       if (playingNow !== null) prefetchFollowing(playingNow);
     };
@@ -375,6 +478,7 @@ export default function AlbumLinkPage() {
     function start() {
       if (playToken.current !== token) return;
       const pending = media.play();
+      readDuration(url, token);
       if (pending !== undefined) {
         pending.catch(() => {
           if (playToken.current !== token) return;
@@ -400,11 +504,12 @@ export default function AlbumLinkPage() {
     setWaiting(true);
     setPlaying(false);
     setTime(0);
-    setDuration(0);
     const playback = { trackNumber, takeId: take.id };
     setCurrent(playback);
     currentRef.current = playback;
     usedFallback.current = false;
+    mediaRef.current = null;
+    setDuration(0);
     beginPlayback(chosenUrl(take), take);
   }
 
